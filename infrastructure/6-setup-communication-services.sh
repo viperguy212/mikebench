@@ -13,10 +13,10 @@
 
 set -e
 
-RESOURCE_GROUP="llm-api-hub-rg"
+RESOURCE_GROUP="mikebench-rg"
 LOCATION="eastus"
-ACS_NAME="<YOUR_INITIALS_OR_NAME>-llm-acs"
-KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"
+ACS_NAME="mikebench-acs"
+KEYVAULT_NAME="mikebench-kv"
 
 # -----------------------------------------------
 # STEP 1: Create the Communication Services resource
@@ -28,7 +28,7 @@ az communication create \
     --resource-group "$RESOURCE_GROUP" \
     --location "global" \
     --data-location "United States" \
-    --tags "project=llm-api-hub"
+    --tags "project=mikebench"
 
 echo "ACS resource created."
 

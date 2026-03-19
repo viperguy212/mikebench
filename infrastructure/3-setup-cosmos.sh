@@ -17,10 +17,10 @@
 
 set -e
 
-RESOURCE_GROUP="llm-api-hub-rg"
+RESOURCE_GROUP="mikebench-rg"
 LOCATION="eastus"
-COSMOS_ACCOUNT_NAME="<YOUR_INITIALS_OR_NAME>-llm-cosmos"   # Must be globally unique, lowercase
-DATABASE_NAME="llm-hub-db"
+COSMOS_ACCOUNT_NAME="mikebench-cosmos"   # Must be globally unique, lowercase
+DATABASE_NAME="mikebench-db"
 
 echo "Creating Cosmos DB account: $COSMOS_ACCOUNT_NAME..."
 echo "(This takes 3-5 minutes — please wait)"
@@ -34,7 +34,7 @@ az cosmosdb create \
     --locations regionName="$LOCATION" failoverPriority=0 isZoneRedundant=false \
     --capabilities EnableServerless \
     --default-consistency-level "Session" \
-    --tags "project=llm-api-hub"
+    --tags "project=mikebench"
 
 echo "Cosmos DB account created."
 
@@ -99,7 +99,7 @@ echo "'usage-logs' container created."
 # -----------------------------------------------
 # STEP 5: Retrieve the connection key and store in Key Vault
 # -----------------------------------------------
-KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"    # Same name from script 2
+KEYVAULT_NAME="mikebench-kv"    # Same name from script 2
 
 echo ""
 echo "Retrieving Cosmos DB primary key..."

@@ -22,7 +22,7 @@ set -e  # Stop immediately if any command fails
 # -----------------------------------------------
 # CONFIGURATION — Edit these values if needed
 # -----------------------------------------------
-RESOURCE_GROUP="llm-api-hub-rg"
+RESOURCE_GROUP="mikebench-rg"
 LOCATION="eastus"      # Change this if you want a different region
                        # Other options: westus2, westeurope, eastasia
                        # Full list: az account list-locations --output table
@@ -49,7 +49,7 @@ echo "Creating Resource Group: $RESOURCE_GROUP in $LOCATION..."
 az group create \
     --name "$RESOURCE_GROUP" \
     --location "$LOCATION" \
-    --tags "project=llm-api-hub" "environment=production" "created-by=setup-script"
+    --tags "project=mikebench" "environment=production" "created-by=setup-script"
 
 echo ""
 echo "✅ SUCCESS: Resource Group '$RESOURCE_GROUP' created in '$LOCATION'"

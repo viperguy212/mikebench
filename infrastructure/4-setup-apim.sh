@@ -21,16 +21,15 @@
 
 set -e
 
-RESOURCE_GROUP="llm-api-hub-rg"
+RESOURCE_GROUP="mikebench-rg"
 LOCATION="eastus"
 
 # APIM name must be globally unique — becomes part of your gateway URL
-# Example: if name is "contoso-llm-hub", URL is https://contoso-llm-hub.azure-api.net
-APIM_SERVICE_NAME="<YOUR_INITIALS_OR_NAME>-llm-hub"
+APIM_SERVICE_NAME="mikebench-apim"
 
 # Publisher details — shown in the Developer Portal
-PUBLISHER_EMAIL="<YOUR_EMAIL_ADDRESS>"
-PUBLISHER_NAME="<YOUR_ORGANIZATION_NAME>"
+PUBLISHER_EMAIL="<YOUR_EMAIL_ADDRESS>"   # ← Replace with your email before running
+PUBLISHER_NAME="Mikebench"
 
 echo "Creating APIM instance: $APIM_SERVICE_NAME"
 echo "This will take approximately 30-45 minutes. Please wait..."
@@ -48,7 +47,7 @@ az apim create \
     --sku-name "Developer" \
     --sku-capacity 1 \
     --enable-client-certificate false \
-    --tags "project=llm-api-hub"
+    --tags "project=mikebench"
 
 echo ""
 echo "APIM instance created. Now creating Products..."
@@ -105,7 +104,7 @@ echo "Created Product: Full Access"
 # STEP 3: Get the Master Subscription Key and store in Key Vault
 # This key lets the backend create users and subscriptions via the APIM Management API
 # -----------------------------------------------
-KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"
+KEYVAULT_NAME="mikebench-kv"
 
 echo ""
 echo "Retrieving APIM master subscription key..."

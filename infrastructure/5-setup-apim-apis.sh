@@ -17,14 +17,16 @@
 
 set -e
 
-RESOURCE_GROUP="llm-api-hub-rg"
-APIM_SERVICE_NAME="<YOUR_INITIALS_OR_NAME>-llm-hub"
+RESOURCE_GROUP="mikebench-rg"
+APIM_SERVICE_NAME="mikebench-apim"
 
-# Replace these with your actual AI Foundry endpoint URLs
-# Found in: AI Foundry Portal → Your Project → Deployments → Click model → Endpoint
-GPT4O_BACKEND_URL="https://<YOUR_OPENAI_RESOURCE>.openai.azure.com"
-MISTRAL_BACKEND_URL="https://<YOUR_FOUNDRY_ENDPOINT>.services.ai.azure.com"
-LLAMA_BACKEND_URL="https://<YOUR_FOUNDRY_ENDPOINT>.services.ai.azure.com"
+# Replace with your AI Gateway endpoint URL
+# Found in: Foundry portal → mikebench-project → AI Gateway → mikebench-gateway → Endpoint
+# Example: https://mikebench-gateway.eastus.inference.ai.azure.com
+AI_GATEWAY_URL="<YOUR_AI_GATEWAY_ENDPOINT_URL>"   # ← Only value you need to fill in
+GPT4O_BACKEND_URL="$AI_GATEWAY_URL"
+MISTRAL_BACKEND_URL="$AI_GATEWAY_URL"
+LLAMA_BACKEND_URL="$AI_GATEWAY_URL"
 
 # -----------------------------------------------
 # STEP 1: Create GPT-4o API

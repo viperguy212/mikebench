@@ -14,11 +14,11 @@
 
 set -e
 
-KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"
+KEYVAULT_NAME="mikebench-kv"
 
 # Your frontend URL — change to your production URL after deployment
 REDIRECT_URI_LOCAL="http://localhost:5173"
-REDIRECT_URI_PROD="https://<YOUR_STATIC_WEB_APP_URL>"
+REDIRECT_URI_PROD="https://<YOUR_STATIC_WEB_APP_URL>"   # ← Replace after deployment
 
 # -----------------------------------------------
 # STEP 1: Create the App Registration
@@ -26,7 +26,7 @@ REDIRECT_URI_PROD="https://<YOUR_STATIC_WEB_APP_URL>"
 echo "Creating App Registration..."
 
 APP_ID=$(az ad app create \
-    --display-name "LLM API Hub Admin Portal" \
+    --display-name "Mikebench Admin Portal" \
     --sign-in-audience "AzureADMyOrg" \
     --web-redirect-uris "$REDIRECT_URI_LOCAL" "$REDIRECT_URI_PROD" \
     --query appId -o tsv)
@@ -81,7 +81,7 @@ echo ""
 echo "CHECKPOINT — How to verify this worked:"
 echo "  1. Go to portal.azure.com"
 echo "  2. Search 'App registrations'"
-echo "  3. Click 'LLM API Hub Admin Portal'"
+echo "  3. Click 'Mikebench Admin Portal'"
 echo "  4. The 'Application (client) ID' should match: $APP_ID"
 echo "  5. Click 'Certificates & secrets' → you should see an active secret"
 echo ""

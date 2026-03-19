@@ -25,12 +25,11 @@ set -e
 # -----------------------------------------------
 # CONFIGURATION — EDIT THESE VALUES
 # -----------------------------------------------
-RESOURCE_GROUP="llm-api-hub-rg"
+RESOURCE_GROUP="mikebench-rg"
 LOCATION="eastus"
 
 # Key Vault name MUST be 3-24 chars, globally unique, only letters/numbers/hyphens
-# EXAMPLE: if your name is "John Smith" use "johnsmith-llm-kv"
-KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"
+KEYVAULT_NAME="mikebench-kv"
 
 # -----------------------------------------------
 # Get your current user's Object ID (needed to grant yourself access)
@@ -51,7 +50,7 @@ az keyvault create \
     --location "$LOCATION" \
     --sku "standard" \
     --enable-rbac-authorization true \
-    --tags "project=llm-api-hub"
+    --tags "project=mikebench"
 
 echo "Key Vault created."
 
