@@ -1,0 +1,104 @@
+# =============================================================================
+# GitHub Actions Workflow: Deploy Backend to Azure App Service
+# =============================================================================
+# WHAT THIS DOES:
+#   Automatically deploys the Node.js backend to Azure App Service whenever
+#   you push changes to the main branch.
+#
+# HOW TO SET THIS UP:
+#   1. Create an Azure App Service:
+#      - Azure Portal → Search "App Services" → Create
+#      - Subscription: your subscription
+#      - Resource Group: llm-api-hub-rg
+#      - Name: llm-api-hub-backend  (must be globally unique)
+#      - Publish: Code
+#      - Runtime stack: Node 20 LTS
+#      - Operating System: Linux
+#      - Region: East US
+#      - Plan: B1 Basic (~$13/month) — or Free F1 for testing
+#
+#   2. Set environment variables on the App Service:
+#      App Service → Configuration → Application settings → + New application setting
+#      Add every variable from your .env file (except dev-only ones)
+#
+#   3. Enable Managed Identity (so the app can access Key Vault without a password):
+#      App Service → Identity → System assigned → Status: On → Save
+#      Then in Key Vault → Access control (IAM) → Add role assignment
+#      → Role: Key Vault Secrets User → Members: your App Service
+#
+#   4. Get the publish profile:
+#      App Service → Overview → Download publish profile
+#      GitHub → Settings → Secrets → New secret → Name: AZURE_WEBAPP_PUBLISH_PROFILE
+#      Paste the entire contents of the downloaded file
+#
+# 💰 COST: App Service B1 = ~$13/month. F1 Free tier = $0 but has cold starts
+#   and limited CPU/RAM — use for testing only.
+# =============================================================================
+
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+env:
+  AZURE_WEBAPP_NAME: 'llm-api-hub-backend'  # Change to your App Service name
+  NODE_VERSION: '20.x'
+
+jobs:
+  build_and_deploy_backend:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Backend
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package.json
+
+      # Step 3: Install dependencies (production only — no dev dependencies in deployment)
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install --production
+
+      # Step 4: Create a deployment package
+      # We zip the backend directory to speed up the upload
+      - name: Create deployment package
+        working-directory: ./backend
+        run: |
+          zip -r ../deployment.zip . \
+            --exclude "*.test.js" \
+            --exclude ".env*" \
+            --exclude "node_modules/.cache/*"
+
+      # Step 5: Deploy to Azure App Service
+      # The publish profile authenticates the deployment
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: deployment.zip
+
+      # Step 6: Verify the deployment is healthy
+      - name: Verify health check
+        run: |
+          sleep 30  # Wait for app to start
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health)
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Health check passed: HTTP $STATUS"
+          else
+            echo "❌ Health check failed: HTTP $STATUS"
+            exit 1
+          fi

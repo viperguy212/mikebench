@@ -1,0 +1,92 @@
+<!--
+=============================================================================
+PRODUCT POLICY: GPT-4o Access
+=============================================================================
+WHAT THIS DOES:
+  - Rate limit: 10 requests per minute per subscription key
+  - Quota: 100 requests per day per subscription key
+  - Token limit: Max 2,000 tokens per request (enforced by inspecting request body)
+  - Blocked if quota exceeded: returns 429 Too Many Requests
+
+HOW TO APPLY:
+  APIM Portal → Products → "GPT-4o Access" → Policies → paste this XML
+
+💰 COST CONTROL: The quota and rate limits prevent runaway costs if a consumer
+  hammers your API. Without these, a single user could exhaust your Azure OpenAI
+  token limits and generate unexpected charges.
+=============================================================================
+-->
+<policies>
+  <inbound>
+    <!-- -------------------------------------------------------
+         Rate Limit: 10 calls per minute per subscription
+         If a consumer sends more than 10 requests in 60 seconds,
+         all additional requests get a 429 response until the window resets.
+         renewal-period="60" = 60-second window
+         calls="10" = max 10 calls in that window
+    ------------------------------------------------------- -->
+    <rate-limit calls="10" renewal-period="60">
+      <api name="gpt4o" />
+    </rate-limit>
+
+    <!-- -------------------------------------------------------
+         Daily Quota: 100 calls per day per subscription
+         Once a consumer hits 100 calls in a calendar day (UTC midnight reset),
+         they get a 403 response with a clear error message.
+    ------------------------------------------------------- -->
+    <quota calls="100" renewal-period="86400">
+      <api name="gpt4o" />
+    </quota>
+
+    <!-- -------------------------------------------------------
+         Token Limit Check (inspect request body)
+         Reads the max_tokens field from the JSON body.
+         If consumer tries to request more than 2000 tokens, reject it.
+    ------------------------------------------------------- -->
+    <choose>
+      <when condition="@{
+        var body = context.Request.Body?.As<JObject>(preserveContent: true);
+        if (body == null) return false;
+        var maxTokens = body.Value<int?>("max_tokens");
+        return maxTokens.HasValue && maxTokens.Value > 2000;
+      }">
+        <return-response>
+          <set-status code="400" reason="Bad Request" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>@{
+            return new JObject(
+              new JProperty("error", new JObject(
+                new JProperty("code", "TOKEN_LIMIT_EXCEEDED"),
+                new JProperty("message", "This account is limited to 2,000 tokens per request. Set max_tokens to 2000 or lower."),
+                new JProperty("status", 400)
+              ))
+            ).ToString();
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+
+    <base />
+  </inbound>
+
+  <backend>
+    <base />
+  </backend>
+
+  <outbound>
+    <!-- Add rate limit headers so consumers can see their remaining quota -->
+    <set-header name="X-RateLimit-Limit-Day" exists-action="override">
+      <value>100</value>
+    </set-header>
+    <set-header name="X-Access-Level" exists-action="override">
+      <value>gpt4o-access</value>
+    </set-header>
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>

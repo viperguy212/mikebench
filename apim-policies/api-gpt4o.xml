@@ -1,0 +1,94 @@
+<!--
+=============================================================================
+API POLICY: GPT-4o (Azure OpenAI)
+=============================================================================
+WHAT THIS DOES:
+  This policy runs on every request to the GPT-4o API.
+  Its most important job: inject the real Azure OpenAI API key into the
+  request header BEFORE forwarding to the backend.
+
+  The consumer's request arrives with ONLY their APIM subscription key.
+  This policy:
+  1. Removes the APIM subscription key (don't forward it to OpenAI)
+  2. Injects the Azure OpenAI key from Key Vault (stored as Named Value)
+  3. Adds the required api-version query parameter for Azure OpenAI
+  4. Logs the request for analytics
+
+🔐 SECURITY: The consumer NEVER sees the Azure OpenAI key.
+  It exists only in Key Vault and is injected by APIM at runtime.
+  Even if a consumer inspects their network traffic, they will only see
+  the request after headers are rewritten — the OpenAI key is not visible.
+
+HOW TO APPLY:
+  APIM Portal → APIs → "GPT-4o (Azure OpenAI)" → Design tab
+  → "All operations" row → Inbound processing → </> → paste this XML
+=============================================================================
+-->
+<policies>
+  <inbound>
+    <!-- -------------------------------------------------------
+         Remove the APIM subscription key before forwarding
+         Azure OpenAI doesn't know about APIM subscription keys.
+         We must strip it before the request reaches the backend,
+         otherwise OpenAI will return a 400 Bad Request.
+    ------------------------------------------------------- -->
+    <set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
+
+    <!-- -------------------------------------------------------
+         Inject the Azure OpenAI API key (from Key Vault via Named Value)
+         {{ai-foundry-gpt4o-key}} is a Named Value you created in APIM.
+         APIM resolves it to the actual secret at runtime.
+         See apim-policies/README.md for how to create Named Values.
+    ------------------------------------------------------- -->
+    <set-header name="api-key" exists-action="override">
+      <value>{{ai-foundry-gpt4o-key}}</value>
+    </set-header>
+
+    <!-- -------------------------------------------------------
+         Add required Azure OpenAI API version
+         Azure OpenAI requires an api-version query parameter.
+         2024-02-01 is the current stable version as of 2025.
+         Check https://learn.microsoft.com/azure/ai-services/openai/reference
+         for the latest version.
+    ------------------------------------------------------- -->
+    <set-query-parameter name="api-version" exists-action="override">
+      <value>2024-02-01</value>
+    </set-query-parameter>
+
+    <!-- -------------------------------------------------------
+         Rewrite URL
+         Consumer calls: POST /gpt4o/chat/completions
+         Backend expects: POST /openai/deployments/gpt-4o/chat/completions
+         This rewrite maps the consumer-facing path to the actual Azure OpenAI path.
+    ------------------------------------------------------- -->
+    <rewrite-uri template="/openai/deployments/gpt-4o/chat/completions" />
+
+    <base />
+  </inbound>
+
+  <backend>
+    <!-- Retry on transient errors (503 Service Unavailable, 429 Too Many Requests from backend) -->
+    <retry condition="@(context.Response.StatusCode == 503 || context.Response.StatusCode == 429)" count="3" interval="1" delta="2" max-interval="10" first-fast-retry="true">
+      <forward-request />
+    </retry>
+  </backend>
+
+  <outbound>
+    <!-- Log usage data for analytics dashboard -->
+    <set-variable name="responseBody" value="@(context.Response.Body?.As<JObject>(preserveContent: true))" />
+
+    <!-- Add model identifier to response headers for consumer convenience -->
+    <set-header name="X-Model" exists-action="override">
+      <value>gpt-4o</value>
+    </set-header>
+    <set-header name="X-Provider" exists-action="override">
+      <value>azure-openai</value>
+    </set-header>
+
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>

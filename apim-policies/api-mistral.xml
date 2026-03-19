@@ -1,0 +1,53 @@
+<!--
+=============================================================================
+API POLICY: Mistral-Large-3 (Azure AI Foundry)
+=============================================================================
+WHAT THIS DOES:
+  Same credential injection pattern as GPT-4o, but for the Mistral endpoint.
+  AI Foundry models use a different auth header format than Azure OpenAI.
+
+HOW TO APPLY:
+  APIM Portal → APIs → "Mistral-Large-3 (AI Foundry)" → Design tab
+  → "All operations" row → Inbound processing → </> → paste this XML
+=============================================================================
+-->
+<policies>
+  <inbound>
+    <set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
+
+    <!-- AI Foundry uses Authorization: Bearer <key> format -->
+    <set-header name="Authorization" exists-action="override">
+      <value>@("Bearer " + "{{ai-foundry-mistral-key}}")</value>
+    </set-header>
+
+    <!-- Set content type -->
+    <set-header name="Content-Type" exists-action="override">
+      <value>application/json</value>
+    </set-header>
+
+    <!-- Rewrite to AI Foundry chat completions endpoint -->
+    <rewrite-uri template="/models/Mistral-Large-3/chat/completions" />
+
+    <base />
+  </inbound>
+
+  <backend>
+    <retry condition="@(context.Response.StatusCode == 503 || context.Response.StatusCode == 429)" count="3" interval="1" delta="2" max-interval="10" first-fast-retry="true">
+      <forward-request />
+    </retry>
+  </backend>
+
+  <outbound>
+    <set-header name="X-Model" exists-action="override">
+      <value>Mistral-Large-3</value>
+    </set-header>
+    <set-header name="X-Provider" exists-action="override">
+      <value>azure-ai-foundry</value>
+    </set-header>
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>

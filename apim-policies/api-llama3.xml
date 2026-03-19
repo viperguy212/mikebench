@@ -1,0 +1,46 @@
+<!--
+=============================================================================
+API POLICY: Meta Llama 3 70B (Azure AI Foundry)
+=============================================================================
+HOW TO APPLY:
+  APIM Portal → APIs → "Meta Llama 3 70B (AI Foundry)" → Design tab
+  → "All operations" row → Inbound processing → </> → paste this XML
+=============================================================================
+-->
+<policies>
+  <inbound>
+    <set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
+
+    <set-header name="Authorization" exists-action="override">
+      <value>@("Bearer " + "{{ai-foundry-llama-key}}")</value>
+    </set-header>
+
+    <set-header name="Content-Type" exists-action="override">
+      <value>application/json</value>
+    </set-header>
+
+    <rewrite-uri template="/models/meta-llama-3-70b-instruct/chat/completions" />
+
+    <base />
+  </inbound>
+
+  <backend>
+    <retry condition="@(context.Response.StatusCode == 503 || context.Response.StatusCode == 429)" count="3" interval="1" delta="2" max-interval="10" first-fast-retry="true">
+      <forward-request />
+    </retry>
+  </backend>
+
+  <outbound>
+    <set-header name="X-Model" exists-action="override">
+      <value>meta-llama-3-70b-instruct</value>
+    </set-header>
+    <set-header name="X-Provider" exists-action="override">
+      <value>azure-ai-foundry</value>
+    </set-header>
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>

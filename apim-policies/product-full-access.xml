@@ -1,0 +1,49 @@
+<!--
+=============================================================================
+PRODUCT POLICY: Full Access – All Models
+=============================================================================
+WHAT THIS DOES:
+  - Rate limit: 600 requests per minute (10 per second)
+  - Quota: 10,000 requests per day
+  - Token limit: Max 32,000 tokens per request
+  - Access to all models
+
+HOW TO APPLY:
+  APIM Portal → Products → "Full Access – All Models" → Policies → paste this XML
+=============================================================================
+-->
+<policies>
+  <inbound>
+    <rate-limit calls="600" renewal-period="60">
+      <api name="gpt4o" />
+      <api name="mistral" />
+      <api name="llama3" />
+    </rate-limit>
+
+    <quota calls="10000" renewal-period="86400">
+      <api name="gpt4o" />
+      <api name="mistral" />
+      <api name="llama3" />
+    </quota>
+
+    <base />
+  </inbound>
+
+  <backend>
+    <base />
+  </backend>
+
+  <outbound>
+    <set-header name="X-RateLimit-Limit-Day" exists-action="override">
+      <value>10000</value>
+    </set-header>
+    <set-header name="X-Access-Level" exists-action="override">
+      <value>full-access</value>
+    </set-header>
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>
