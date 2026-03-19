@@ -7,52 +7,57 @@ to skip and which to run.
 
 ---
 
-## Part 1 — How to Run Bash Scripts on Windows
+## Part 1 — Getting Set Up in Azure Cloud Shell
 
 The infrastructure scripts are bash scripts (`.sh` files). Windows does not run
 these natively. The easiest option is **Azure Cloud Shell** — a browser-based
 terminal that is already logged into your Azure account and requires no local setup.
 
-### Option A: Azure Cloud Shell (recommended)
+### Step 1 — Open Cloud Shell
 
-1. Open a browser and go to `portal.azure.com`
+1. Go to `portal.azure.com`
 2. Click the **Cloud Shell** icon in the top toolbar — it looks like `>_`
-   *(It sits in the header bar, to the left of the notification bell)*
+   *(it sits in the header bar, to the left of the notification bell)*
 3. If prompted to create a storage account, click **"Create storage"** — this is a small
-   free storage used by Cloud Shell to persist your files
-4. When the terminal opens at the bottom of the screen, click the dropdown at the top
-   of the terminal pane and select **"Bash"** if it isn't already selected
-5. You are now in a bash terminal that is already logged into Azure. No `az login` needed.
-
-**Upload the project files to Cloud Shell:**
-
-1. Click the **Upload/Download** button in the Cloud Shell toolbar (looks like a page with an arrow)
-2. Click **"Upload"**
-3. Upload the entire `infrastructure/` folder — or upload the individual `.sh` files you need
-
-Alternatively, if your project is in a GitHub repository, clone it directly:
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
-```
+   free persistent storage used by Cloud Shell
+4. When the terminal opens, click the dropdown at the top of the terminal pane and
+   select **"Bash"** if it is not already selected
+5. You are now in a bash terminal already logged into Azure — no `az login` needed
 
 ---
 
-### Option B: Git Bash (local)
+### Step 2 — Clone your GitHub repository
 
-If you have Git installed on your computer, Git Bash is already available.
+Since your project is already on GitHub, the cleanest approach is to clone it
+directly into Cloud Shell. This also means you can edit files here and push
+changes back to GitHub if needed.
 
-1. Open the Start menu → search **"Git Bash"** → click it
-2. A terminal window opens
-3. Log in to Azure CLI:
-   ```bash
-   az login
-   ```
-   A browser window will open — sign in with your Azure account. Return to Git Bash when done.
-4. Verify you are logged in:
-   ```bash
-   az account show
-   ```
+Run this in the Cloud Shell terminal:
+
+```bash
+git clone https://github.com/viperguy212/mikebench.git
+cd mikebench
+```
+
+You now have all your project files available in Cloud Shell.
+
+---
+
+### Step 3 — Open the built-in file editor
+
+Cloud Shell has a full graphical file editor (similar to VS Code) built in.
+Use it to edit scripts before running them — no typing values into a terminal needed.
+
+1. In the Cloud Shell toolbar, click the **"{ }"** (curly braces) icon — this opens the editor
+   *(alternatively type `code .` in the terminal and press Enter)*
+2. The editor opens in the upper half of the screen, with a file tree on the left
+3. Navigate to the file you want to edit by clicking through the folders in the left panel
+4. Make your changes — the editor saves automatically, or press **Ctrl+S**
+5. Close the editor by clicking the **X** on the editor tab or clicking the `>_` icon to
+   return focus to the terminal
+
+> **Tip:** Keep the editor open while you run scripts in the terminal below.
+> You can switch between them freely.
    You should see your subscription name and ID printed.
 5. Navigate to the project folder:
    ```bash
@@ -82,8 +87,8 @@ created several resources through the portal. Here is the status of each script:
 
 Because you already created the APIM service through the portal, running the full
 `4-setup-apim.sh` script would fail — it would try to create `mikebench-apim` again
-and conflict with the existing resource. Instead, run only the Product creation
-commands below.
+and conflict with the existing resource. Instead, paste the Product creation
+commands below directly into the Cloud Shell terminal — no file editing needed.
 
 Copy and paste these commands one block at a time into your terminal.
 They will create the three access Products inside your existing `mikebench-apim` instance:
@@ -144,9 +149,11 @@ az apim product create \
 ## Part 4 — Script 5 (API Routes)
 
 This script creates the three API route definitions in APIM and assigns them to your Products.
-Before running it, you need to fill in three values.
+Before running it, you need to fill in your resource names and endpoint URLs.
 
-**Step 1.** Open `infrastructure/5-setup-apim-apis.sh` in VS Code.
+**Step 1.** Open the Cloud Shell editor:
+- Click the **"{ }"** icon in the Cloud Shell toolbar (or type `code .` in the terminal)
+- In the file tree on the left, click **`infrastructure`** → click **`5-setup-apim-apis.sh`**
 
 **Step 2.** Find and update these lines near the top of the file:
 
@@ -163,7 +170,7 @@ Before running it, you need to fill in three values.
 > copy the **"Endpoint"** or **"Gateway URL"** shown on the overview screen.
 > It will look like: `https://mikebench-gateway.eastus.inference.ai.azure.com`
 
-**Step 3.** Save the file, then run it:
+**Step 3.** Press **Ctrl+S** to save, then click back into the terminal and run:
 
 ```bash
 bash infrastructure/5-setup-apim-apis.sh
@@ -193,7 +200,7 @@ Assigning APIs to Products...
 This script creates Azure Communication Services, which sends welcome emails to consumers
 when their registration is approved.
 
-**Step 1.** Open `infrastructure/6-setup-communication-services.sh` in VS Code.
+**Step 1.** In the Cloud Shell editor, open **`infrastructure/6-setup-communication-services.sh`**
 
 **Step 2.** Update these lines near the top:
 
@@ -203,7 +210,7 @@ when their registration is approved.
 | `ACS_NAME="<YOUR_INITIALS_OR_NAME>-llm-acs"` | `ACS_NAME="mikebench-acs"` |
 | `KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"` | `KEYVAULT_NAME="mikebench-kv"` |
 
-**Step 3.** Save and run:
+**Step 3.** Press **Ctrl+S** to save, click back into the terminal and run:
 
 ```bash
 bash infrastructure/6-setup-communication-services.sh
@@ -226,7 +233,7 @@ admin portal to verify who is signing in.
 > the terminal output. The script stores it in Key Vault automatically, but copy it
 > somewhere safe as a backup before closing your terminal.
 
-**Step 1.** Open `infrastructure/7-setup-app-registration.sh` in VS Code.
+**Step 1.** In the Cloud Shell editor, open **`infrastructure/7-setup-app-registration.sh`**
 
 **Step 2.** Update these lines near the top:
 
@@ -235,7 +242,7 @@ admin portal to verify who is signing in.
 | `KEYVAULT_NAME="<YOUR_INITIALS_OR_NAME>-llm-kv"` | `KEYVAULT_NAME="mikebench-kv"` |
 | `REDIRECT_URI_LOCAL="http://localhost:5173"` | Leave as-is for now |
 
-**Step 3.** Save and run:
+**Step 3.** Press **Ctrl+S** to save, click back into the terminal and run:
 
 ```bash
 bash infrastructure/7-setup-app-registration.sh
