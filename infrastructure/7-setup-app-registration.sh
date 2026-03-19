@@ -16,9 +16,10 @@ set -e
 
 KEYVAULT_NAME="mikebench-kv"
 
-# Your frontend URL — change to your production URL after deployment
+# Your frontend URL — localhost only for now.
+# After deployment, add your production URL in the portal:
+#   App registrations → Mikebench Admin Portal → Authentication → Add URI
 REDIRECT_URI_LOCAL="http://localhost:5173"
-REDIRECT_URI_PROD="https://<YOUR_STATIC_WEB_APP_URL>"   # ← Replace after deployment
 
 # -----------------------------------------------
 # STEP 1: Create the App Registration
@@ -28,7 +29,7 @@ echo "Creating App Registration..."
 APP_ID=$(az ad app create \
     --display-name "Mikebench Admin Portal" \
     --sign-in-audience "AzureADMyOrg" \
-    --web-redirect-uris "$REDIRECT_URI_LOCAL" "$REDIRECT_URI_PROD" \
+    --web-redirect-uris "$REDIRECT_URI_LOCAL" \
     --query appId -o tsv)
 
 echo "App Registration created. App (Client) ID: $APP_ID"
