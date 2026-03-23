@@ -18,31 +18,31 @@ HOW TO APPLY:
 -->
 <policies>
   <inbound>
-    <!-- -------------------------------------------------------
+    <!-- 
          Rate Limit: 10 calls per minute per subscription
          If a consumer sends more than 10 requests in 60 seconds,
          all additional requests get a 429 response until the window resets.
          renewal-period="60" = 60-second window
          calls="10" = max 10 calls in that window
-    ------------------------------------------------------- -->
+   -->
     <rate-limit calls="10" renewal-period="60">
       <api name="gpt4o" />
     </rate-limit>
 
-    <!-- -------------------------------------------------------
+    <!-- 
          Daily Quota: 100 calls per day per subscription
          Once a consumer hits 100 calls in a calendar day (UTC midnight reset),
          they get a 403 response with a clear error message.
-    ------------------------------------------------------- -->
+   -->
     <quota calls="100" renewal-period="86400">
       <api name="gpt4o" />
     </quota>
 
-    <!-- -------------------------------------------------------
+    <!-- 
          Token Limit Check (inspect request body)
          Reads the max_tokens field from the JSON body.
          If consumer tries to request more than 2000 tokens, reject it.
-    ------------------------------------------------------- -->
+   -->
     <choose>
       <when condition="@{
         var body = context.Request.Body?.As<JObject>(preserveContent: true);

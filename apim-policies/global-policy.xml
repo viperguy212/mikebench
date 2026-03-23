@@ -19,11 +19,11 @@ HOW TO APPLY:
 -->
 <policies>
   <inbound>
-    <!-- -------------------------------------------------------
+    <!-- 
          CORS Policy
          Allows your frontend to call the APIM gateway from a browser.
          Replace https://your-app.azurestaticapps.net with your real frontend URL.
-    ------------------------------------------------------- -->
+   -->
     <cors allow-credentials="false">
       <allowed-origins>
         <origin>http://localhost:5173</origin>
@@ -42,12 +42,12 @@ HOW TO APPLY:
       </allowed-headers>
     </cors>
 
-    <!-- -------------------------------------------------------
+    <!-- 
          Subscription Key Validation
          Rejects any request that does not include a valid APIM subscription key.
          The key is passed in the "Ocp-Apim-Subscription-Key" header.
          This is the primary access control mechanism.
-    ------------------------------------------------------- -->
+   -->
     <!-- Subscription key validation is automatic in APIM when subscription-required=true on the Product -->
     <!-- This block adds a clear error message if the key is missing -->
     <choose>
@@ -70,11 +70,11 @@ HOW TO APPLY:
       </when>
     </choose>
 
-    <!-- -------------------------------------------------------
+    <!-- 
          Add request tracking headers
          Adds a unique correlation ID to every request so you can
          trace a specific call through all your logs.
-    ------------------------------------------------------- -->
+   -->
     <set-header name="X-Request-Id" exists-action="override">
       <value>@(Guid.NewGuid().ToString())</value>
     </set-header>
@@ -90,11 +90,11 @@ HOW TO APPLY:
   </backend>
 
   <outbound>
-    <!-- -------------------------------------------------------
+    <!-- 
          Security Response Headers
          These headers protect consumers' browsers from common attacks.
          They are industry-standard and should always be set.
-    ------------------------------------------------------- -->
+   -->
     <set-header name="X-Content-Type-Options" exists-action="override">
       <value>nosniff</value>
     </set-header>
@@ -113,11 +113,11 @@ HOW TO APPLY:
   </outbound>
 
   <on-error>
-    <!-- -------------------------------------------------------
+    <!-- 
          Global Error Handler
          Formats all unhandled errors as consistent JSON responses
          instead of the default APIM XML error format.
-    ------------------------------------------------------- -->
+   -->
     <set-header name="Content-Type" exists-action="override">
       <value>application/json</value>
     </set-header>
